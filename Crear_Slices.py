@@ -4,8 +4,8 @@ def mostrar_opciones_topologia():
     print("\nOpciones de Topología:")
     print("1. Lineal")
     print("2. Anillo")
-    print("3. Bus")
-    print("4. Árbol")
+    print("3. Parcial")
+ 
 
 def crear_topologia():
     while True:
@@ -16,8 +16,8 @@ def crear_topologia():
             topologias = {
                 "1": "Lineal",
                 "2": "Anillo",
-                "3": "Parcial",
-                #"4": "Arbol"  # Nota: sin tilde para coincidir con el nombre del archivo.
+                "3": "Parcial"
+        
             }
             script_name = f"{topologias[opcion]}.py"
             print(f"Has seleccionado la topología {topologias[opcion]}")

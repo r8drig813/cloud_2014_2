@@ -2,6 +2,8 @@ import sys
 import paramiko
 import networkx as nx
 import matplotlib.pyplot as plt
+import json
+
 
 def ejecutar_comando_ssh(ssh, comando, sudo=False):
     if sudo:
@@ -156,6 +158,20 @@ def configurar_vms(topologia):
         if err:
             print(f"Error al inicializar worker: {err}")
             continue
+
+    headnode_ssh.close()
+
+    vm_info = {
+        "topologia": topologia,
+        "vms": vms
+    }
+    json_data = json.dumps(vm_info, indent=2)
+    save_command = f"echo '{json_data}' | sudo tee /home/ubuntu/vm_info.json"
+    out, err = ejecutar_comando_ssh(headnode_ssh, save_command)
+    if err:
+        print(f"Error al guardar la información de las VMs: {err}")
+    else:
+        print("Información de las VMs guardada exitosamente.")
 
     headnode_ssh.close()
 

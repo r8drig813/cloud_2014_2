@@ -16,6 +16,7 @@ def main():
         
         if opcion == "1":
             print("Has seleccionado: Listar Slices")
+            subprocess.run(["python", "Ver_Slice.py"])
         elif opcion == "2":
             print("Has seleccionado: Crear Slices")
             subprocess.run(["python", "Crear_Slices.py"])
@@ -23,6 +24,8 @@ def main():
             print("Has seleccionado: Editar Slices")
         elif opcion == "4":
             print("Has seleccionado: Borrar Slices")
+            subprocess.run(["python", "Eliminar.py"])
+
         elif opcion == "5":
             print("Gracias por usar el programa. ¡Hasta luego!")
             break
