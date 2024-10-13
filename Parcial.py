@@ -61,14 +61,14 @@ def configurar_vms():
     headnode_ssh = conectar_ssh('10.20.12.187', 5800, 'ubuntu', 'zenbook13')
     if not headnode_ssh:
         return
-
+    '''
     # Ejecutar init_headnode.sh
     print("Ejecutando init_headnode.sh...")
     out, err = ejecutar_comando_ssh(headnode_ssh, "./init_headnode.sh br-int ens5", sudo=True)
     print(out)
     if err:
         print(f"Error: {err}")
-
+    '''
     # Configurar VMs para topología de anillo
     num_vms_anillo = int(input("Ingrese número de VMs para la topología de anillo: "))
     vms_anillo = configurar_vms_grupo("anillo", num_vms_anillo)

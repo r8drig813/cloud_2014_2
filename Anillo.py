@@ -53,13 +53,13 @@ def configurar_vms(topologia):
     if not headnode_ssh:
         return
 
-    # Ejecutar init_headnode.sh
+    '''# Ejecutar init_headnode.sh
     print("Ejecutando init_headnode.sh...")
     out, err = ejecutar_comando_ssh(headnode_ssh, "./init_headnode.sh br-int ens5", sudo=True)
     print(out)
     if err:
         print(f"Error: {err}")
-
+    '''
     # Solicitar número de VMs
     while True:
         try:
