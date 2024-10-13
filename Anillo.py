@@ -37,7 +37,7 @@ def visualizar_topologia(vms, topologia):
     nx.draw(G, pos, with_labels=True, node_color='lightblue', node_size=3000, font_size=12, font_weight='bold')
     
     # Añadir etiquetas con información adicional
-    node_labels = {vm['nombre']: f"{vm['nombre']}\nRAM: {vm['ram']}GB\nStorage: {vm['almacenamiento']}GB\nInternet: {'Sí' if vm['internet'] else 'No'}\nWorker: {vm['worker']}" for vm in vms}
+    node_labels = {vm['nombre']: f"{vm['nombre']}\nRAM: {vm['ram']}GB\nStorage: {vm['cpu']}GB\nInternet: {'Sí' if vm['internet'] else 'No'}\nWorker: {vm['worker']}" for vm in vms}
     nx.draw_networkx_labels(G, pos, node_labels, font_size=8)
     
     plt.title(f"Topología de Red: {topologia}")
@@ -52,8 +52,8 @@ def configurar_vms(topologia):
     headnode_ssh = conectar_ssh('10.20.12.187', 5800, 'ubuntu', 'zenbook13')
     if not headnode_ssh:
         return
-
-    '''# Ejecutar init_headnode.sh
+    '''
+    # Ejecutar init_headnode.sh
     print("Ejecutando init_headnode.sh...")
     out, err = ejecutar_comando_ssh(headnode_ssh, "./init_headnode.sh br-int ens5", sudo=True)
     print(out)
@@ -77,22 +77,30 @@ def configurar_vms(topologia):
     for i in range(1, num_vms + 1):
         print(f"\nConfiguración para VM{i}:")
         ram = int(input(f"Cantidad de RAM (GB) para la VM{i}: "))
-        storage = int(input(f"Cantidad de almacenamiento (GB) para la VM{i}: "))
+        cpu = int(input(f"Número de CPUs para la VM{i}: "))
         internet = input(f"¿Desea que la VM{i} tenga conexión a internet? (s/n): ").lower() == 's'
         worker_num = input('Selecciona un worker (1-3): ')
+        
+        while True:
+            image_option = input("Seleccione la imagen a usar (1 para Cirros, 2 para Ubuntu): ")
+            if image_option in ['1', '2']:
+                break
+            else:
+                print("Por favor, seleccione 1 o 2.")
+
         worker = f"Worker {worker_num}"
 
         vms.append({
             "nombre": f"VM{i}",
             "ram": ram,
-            "almacenamiento": storage,
+            "cpu": cpu,
             "internet": internet,
             "worker": worker,
             "worker_num": worker_num,
-            "vlan_tag": i * 100
+            "vlan_tag": i * 100,
+            "image_option": image_option
         })
 
-        # Preparar comando para crear VLAN
         vlan_tag = i * 100
         ip_base = f"192.168.{i}"
         vlan_commands.append(f"vlan{vlan_tag} {vlan_tag} {ip_base}.0/24 {ip_base}.50,{ip_base}.100")
@@ -141,8 +149,8 @@ def configurar_vms(topologia):
         print(f"Conectando al {vm['worker']} ({worker_ip})...")
 
         # Crear VM en el worker
-        create_vm_command = f"ssh {worker_ip} 'echo zenbook13 | sudo -S ./create_vm.sh {vm['nombre']} br-int {vm['vlan_tag']} {vm['vlan_tag'] // 100}'"
-        print(f"Comando a ejecutar: {create_vm_command}")  # Aquí se imprime el comando completo
+        create_vm_command = f"ssh {worker_ip} 'echo zenbook13 | sudo -S ./create_vm.sh {vm['nombre']} br-int {vm['vlan_tag']} {vm['vlan_tag'] // 100} {vm['image_option']} {vm['ram']*1024} {vm['cpu']}'"
+        print(f"Comando a ejecutar: {create_vm_command}")
         print(f"Creando {vm['nombre']} en {vm['worker']}...")
         out, err = ejecutar_comando_ssh(headnode_ssh, create_vm_command)
         print(out)
@@ -165,10 +173,11 @@ def configurar_vms(topologia):
     for vm in vms:
         print(f"\n{vm['nombre']}:")
         print(f"  RAM: {vm['ram']} GB")
-        print(f"  Almacenamiento: {vm['almacenamiento']} GB")
+        print(f"  CPUs: {vm['cpu']}")
         print(f"  Conexión a internet: {'Sí' if vm['internet'] else 'No'}")
         print(f"  Desplegada en: {vm['worker']}")
         print(f"  VLAN tag: {vm['vlan_tag']}")
+        print(f"  Imagen: {'Cirros' if vm['image_option'] == '1' else 'Ubuntu'}")
 
 if __name__ == "__main__":
     if len(sys.argv) > 1:

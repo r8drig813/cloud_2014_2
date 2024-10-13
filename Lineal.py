@@ -39,7 +39,7 @@ def visualizar_topologia(vms, topologia):
     nx.draw(G, pos, with_labels=True, node_color='lightgreen', node_size=3000, font_size=12, font_weight='bold')
     
     # Añadir etiquetas con información adicional
-    node_labels = {vm['nombre']: f"{vm['nombre']}\nRAM: {vm['ram']}GB\nStorage: {vm['cpu']}GB\nInternet: {'Sí' if vm['internet'] else 'No'}\nWorker: {vm['worker']}" for vm in vms}
+    node_labels = {vm['nombre']: f"{vm['nombre']}\nRAM: {vm['ram']}GB\nCPU: {vm['cpu']}GB\nInternet: {'Sí' if vm['internet'] else 'No'}\nWorker: {vm['worker']}" for vm in vms}
     nx.draw_networkx_labels(G, pos, node_labels, font_size=8)
     
     plt.title(f"Topología de Red: {topologia}")

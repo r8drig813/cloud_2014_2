@@ -43,7 +43,7 @@ def visualizar_topologia(vms_anillo, vms_lineal, vm_conexion):
     nx.draw(G, pos, with_labels=True, node_color='lightblue', node_size=3000, font_size=12, font_weight='bold')
     
     # Añadir etiquetas con información adicional
-    node_labels = {vm['nombre']: f"{vm['nombre']}\nRAM: {vm['ram']}GB\nStorage: {vm['almacenamiento']}GB\nInternet: {'Sí' if vm['internet'] else 'No'}\nWorker: {vm['worker']}" for vm in vms_anillo + vms_lineal}
+    node_labels = {vm['nombre']: f"{vm['nombre']}\nRAM: {vm['ram']}GB\nStorage: {vm['cpu']}GB\nInternet: {'Sí' if vm['internet'] else 'No'}\nWorker: {vm['worker']}" for vm in vms_anillo + vms_lineal}
     nx.draw_networkx_labels(G, pos, node_labels, font_size=8)
     
     # Resaltar la VM de conexión
@@ -117,21 +117,30 @@ def configurar_vms():
 def configurar_vms_grupo(tipo, num_vms, start_index=1):
     vms = []
     for i in range(start_index, start_index + num_vms):
-        print(f"\nConfiguración para VM{i} ({tipo}):")
+        print(f"\nConfiguración para VM{i}:")
         ram = int(input(f"Cantidad de RAM (GB) para la VM{i}: "))
-        storage = int(input(f"Cantidad de almacenamiento (GB) para la VM{i}: "))
+        cpu = int(input(f"Número de CPUs para la VM{i}: "))
         internet = input(f"¿Desea que la VM{i} tenga conexión a internet? (s/n): ").lower() == 's'
         worker_num = input('Selecciona un worker (1-3): ')
+        
+        while True:
+            image_option = input("Seleccione la imagen a usar (1 para Cirros, 2 para Ubuntu): ")
+            if image_option in ['1', '2']:
+                break
+            else:
+                print("Por favor, seleccione 1 o 2.")
+
         worker = f"Worker {worker_num}"
 
         vms.append({
             "nombre": f"VM{i}",
             "ram": ram,
-            "almacenamiento": storage,
+            "cpu": cpu,
             "internet": internet,
             "worker": worker,
             "worker_num": worker_num,
-            "vlan_tag": i * 100
+            "vlan_tag": i * 100,
+            "image_option": image_option
         })
     return vms
 
@@ -179,7 +188,8 @@ def desplegar_vms(ssh, vms):
         worker_ip = worker_ips[vm['worker_num']]
         print(f"Conectando al {vm['worker']} ({worker_ip})...")
 
-        create_vm_command = f"ssh {worker_ip} 'echo zenbook13 | sudo -S ./create_vm.sh {vm['nombre']} br-int {vm['vlan_tag']} {vm['vlan_tag'] // 100}'"
+        create_vm_command = f"ssh {worker_ip} 'echo zenbook13 | sudo -S ./create_vm.sh {vm['nombre']} br-int {vm['vlan_tag']} {vm['vlan_tag'] // 100} {vm['image_option']} {vm['ram']*1024} {vm['cpu']}'"
+        print(f"Comando a ejecutar: {create_vm_command}")
         print(f"Creando {vm['nombre']} en {vm['worker']}...")
         out, err = ejecutar_comando_ssh(ssh, create_vm_command)
         print(out)
@@ -199,10 +209,11 @@ def mostrar_resumen(vms, vm_conexion):
     for vm in vms:
         print(f"\n{vm['nombre']}:")
         print(f"  RAM: {vm['ram']} GB")
-        print(f"  Almacenamiento: {vm['almacenamiento']} GB")
+        print(f"  CPUs: {vm['cpu']}")
         print(f"  Conexión a internet: {'Sí' if vm['internet'] else 'No'}")
         print(f"  Desplegada en: {vm['worker']}")
         print(f"  VLAN tag: {vm['vlan_tag']}")
+        print(f"  Imagen: {'Cirros' if vm['image_option'] == '1' else 'Ubuntu'}")
 
 if __name__ == "__main__":
     configurar_vms()
